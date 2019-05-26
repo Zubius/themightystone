@@ -6,29 +6,31 @@ public class CameraController : MonoBehaviour {
 
     public Transform Target;
 
-    public float ZoomSpeedTouch = 0.1f;
+    public float ZoomSpeedTouch = 0.05f;
     public float ZoomSpeedMouse = 0.5f;
-    public float RotateMod = 10f;
+    public float RotateSpeedTouch = 5f;
+    public float RotateSpeedMouse = 10f;
     public float[] ZoomBounds = new float[] { 10f, 85f };
 
 
-    private Camera camera;
+    private Camera _camera;
 
+    public float rotateMod;
     private bool wasZoomingLastFrame;
     private Vector2[] lastZoomPositions;
 
     // Use this for initialization
     void Awake () {
-        camera = GetComponent<Camera>();
+        _camera = GetComponent<Camera>();
         this.transform.LookAt(Target);
+        rotateMod = Application.isEditor ? RotateSpeedMouse : RotateSpeedTouch;
     }
 	
 	// Update is called once per frame
 	void Update () {
 		if (Target != null && Input.GetMouseButton(0))
         {
-            this.transform.RotateAround(Target.position, Vector3.up, Input.GetAxis("Mouse X") * RotateMod);
-            this.transform.LookAt(Target);
+            HandleRotate();
         }
 
         if (Input.touchSupported)
@@ -39,6 +41,15 @@ public class CameraController : MonoBehaviour {
         {
             HandleMouse();
         }
+    }
+
+    private void HandleRotate()
+    {
+        if (Input.touchSupported && Input.touchCount > 1 || Input.GetTouch(0).phase != TouchPhase.Moved)
+            return;
+
+        this.transform.RotateAround(Target.position, Vector3.up, Input.GetAxis("Mouse X") * rotateMod);
+        this.transform.LookAt(Target);
     }
 
     private void HandleTouch()
@@ -80,6 +91,6 @@ public class CameraController : MonoBehaviour {
         if (offset == 0)
             return;
 
-        camera.fieldOfView = Mathf.Clamp(camera.fieldOfView - (offset * speed), ZoomBounds[0], ZoomBounds[1]);
+        _camera.fieldOfView = Mathf.Clamp(_camera.fieldOfView - (offset * speed), ZoomBounds[0], ZoomBounds[1]);
     }
 }
